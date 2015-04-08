@@ -8,3 +8,4 @@ meteor-platform
 insecure
 underscore
 twbs:bootstrap
+iron:router
