@@ -1,10 +1,7 @@
-<template name="ApplicationLayout">
+<template name="applicationLayout">
 	<div class="container">
-		<header class="navbar navbar-default" role="navigation">
-			<div class="navbar-header">
-		    	<a class="navbar-brand" href="{{pathFor route='postsList'}}">Geo Chat</a>
-		    </div>
-		</header>
+
+		{{> header}}
 
 		<div id="main">
 			{{> yield}}
