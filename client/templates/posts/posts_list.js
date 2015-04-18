@@ -6,5 +6,5 @@
 */
 
 Template.postsList.helpers({
-	posts: Posts.find()
+	posts: Posts.find({},{sort: {submitted: -1}})
 });
