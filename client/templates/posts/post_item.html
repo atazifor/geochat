@@ -7,6 +7,8 @@
 				{{#if ownsPost}}<a href="{{pathFor 'editPost'}}">Edit</a>{{/if}}
             </p>
 		</div>
-		<a href="{{pathFor 'postPage'}}" class="discuss btn btn-default">Discuss</a>
+		{{#if pathFor 'postPage'}}
+			<a href="{{pathFor 'postPage'}}" class="discuss btn btn-default">Discuss</a>
+		{{/if}}
 	</div>
 </template>
