@@ -1,0 +1,21 @@
+<template name="editPost">
+    <form class="main form page">
+        <div class="form-group {{errorClass 'message'}}">
+            <label class="control-label" for="message">Message</label>
+            <div class="controls">
+                <input name="message" id="message" type="text" value="{{message}}" placeholder="Your post" class="form-control"/>
+                <span class="help-block">{{errorMessage 'message'}}</span>
+            </div>
+        </div>
+        <div class="form-group {{errorClass 'tags'}}">
+            <label class="control-label" for="tags">Tags</label>
+            <div class="controls">
+                <input name="tags" id="tags" type="text" value="{{tags}}" placeholder="Tags for your post (ex: football, biking, basketball, etc)" class="form-control"/>
+                <span class="help-block">{{errorMessage 'tags'}}</span>
+            </div>
+        </div>
+        <input type="submit" value="Submit" class="btn btn-primary submit"/>
+        <hr/>
+        <a class="btn btn-danger delete" href="#">Delete post</a>
+    </form>
+</template>
