@@ -45,8 +45,8 @@ if(Posts.find().count() === 0){
 			"running",
 			"training"
 		],
-		"userId" : "ZPLwd8tdX2BrMnp58",
-		"author" : "aminzifor",
+		"userId" : peter._id,
+		"author" : peter.profile.name,
 		"submitted" : new Date(now - 7 * 3600 * 1000),
 		commentsCount: 1
 	});
@@ -58,4 +58,18 @@ if(Posts.find().count() === 0){
 		submitted: new Date(now - 3 * 3600 * 1000),
 		body: 'I am definitely interested. I will come with my wife. We shall bring hot dogs!'
 	});
+
+	for (i = 0; i < 10; i++){
+		Posts.insert({
+			"message" : "Pagination Added " + i,
+			"tags" : [
+				"page",
+				"add"
+			],
+			"userId" : peter._id,
+			"author" : peter.profile.name,
+			"submitted" : new Date(now - 7 * 3600 * 1000),
+			commentsCount: 0
+		});
+	}
 }
