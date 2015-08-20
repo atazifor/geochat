@@ -158,3 +158,10 @@ body {
   margin-bottom: 5px;
   pointer-events: auto;
 }
+
+#map-canvas {
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  background-color: aliceblue;
+}
