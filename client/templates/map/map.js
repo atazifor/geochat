@@ -55,19 +55,19 @@ Meteor.startup(function() {
 Template.map.onCreated(function() {
     GoogleMaps.ready('map', function(map) {
         console.log("I'm ready!");
-        var poly = getRegularPolygonCoordinates(10, .001);
+        var polygonPaths = getRegularPolygonCoordinates(10, .0005);
         // Construct the polygon.
-        var bermudaTriangle = new google.maps.Polygon({
-            paths: poly,
+        var polygon = new google.maps.Polygon({
+            paths: polygonPaths,
             strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
+            strokeOpacity: 0.35,
             strokeWeight: 2,
             fillColor: '#FF0000',
-            fillOpacity: 0.35,
+            fillOpacity: 0.25,
             draggable: true,
             editable: true
         });
-        bermudaTriangle.setMap(map.instance);
+        polygon.setMap(map.instance);
     });
 });
 

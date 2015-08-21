@@ -22,7 +22,18 @@
                     </ul>
                 {{/if}}
                 <ul class="nav navbar-nav navbar-right">
-                    {{> loginButtons}}
+                    {{#if currentUser}}
+                        <li>
+                            <a href="#" class="logout">Logout</a>
+                        </li>
+                    {{else}}
+                        <li>
+                            <a href="{{pathFor 'login'}}">Login</a>
+                        </li>
+                        <li>
+                            <a href="{{pathFor 'register'}}">Create Account</a>
+                        </li>
+                    {{/if}}
                 </ul>
             </div>
         </div>
