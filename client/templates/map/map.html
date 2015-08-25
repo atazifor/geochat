@@ -1,5 +1,18 @@
 <template name="map">
-    <div class="map-container">
-        {{> googleMap name="map" options=mapOptions}}
-    </div>
+    <form class="form-horizontal">
+        <div class="map-container form-group">
+            <h4>Use the overlay in the map to select the approximate boundaries of your neighborhood</h4>
+            {{> googleMap name="map" options=mapOptions}}
+        </div>
+        <hr>
+        <div class="form-group {{errorClass 'neighborhood'}}">
+            <label class="control-label" for="neighborhood">Neighborhood/Community name</label>
+            <div class="controls">
+                <input name="neighborhood" id="neighborhood" type="text" value="" placeholder="The Settlement" class="form-control"/>
+                <span class="help-block">{{errorMessage 'neighborhood'}}</span>
+            </div>
+        </div>
+        <input type="submit" value="Save" class="btn btn-primary"/>
+    </form>
+    <div id="info"></div>
 </template>  

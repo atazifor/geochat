@@ -29,6 +29,33 @@ function getRegularPolygonCoordinates(numberOfSides, radius){
     return polygon;
 }
 
+/**
+ * Note: geojson points are of the form [longitude, latitude] while google map points are of form
+ * (latitude, longitude)
+ * @param numberOfSides
+ * @param radius
+ * @returns {{type: string, coordinates: *[]}}
+ */
+function getGeoJSONPolygonCoordinates(numberOfSides, radius){
+    var polygon = []; //hold polygon to define area on map
+    var theta = 2 * Math.PI / numberOfSides;
+    //polygon.push([center.longitude, radius + center.latitude]);//ensures firs
+    for (i = 0; i <= numberOfSides; ++i) {//ensures that you go 2Pi(360) degrees
+        var x = radius * Math.cos(theta * i); //x coordinate
+        var y = radius * Math.sin(theta * i);// y coordinate
+        polygon.push([center.longitude + y, center.latitude + x]);
+    }
+    //polygon.push([center.longitude, center.latitude]);
+
+    console.log(JSON.stringify(getRegularPolygonCoordinates(numberOfSides, radius)));
+    console.log(JSON.stringify({"type": "Polygon",  "coordinates": [polygon]}));
+    return {
+        "type":"Polygon",
+        "coordinates":[polygon]
+    };
+}
+
+
 function getCenterCoordinates(callback) {
     navigator.geolocation.getCurrentPosition(
         function (position) {
@@ -44,31 +71,39 @@ function getCenterCoordinates(callback) {
 
 Meteor.startup(function() {
     GoogleMaps.load();
-    //change the center to the user's current position
+    //change the center to the user's current position 40.75597, -73.974228
     getCenterCoordinates(function (position) {
         center.latitude = position.latitude;
         center.longitude = position.longitude;
     });
-
 });
 
 Template.map.onCreated(function() {
     GoogleMaps.ready('map', function(map) {
         console.log("I'm ready!");
-        var polygonPaths = getRegularPolygonCoordinates(10, .0005);
-        // Construct the polygon.
-        var polygon = new google.maps.Polygon({
-            paths: polygonPaths,
+        neighborHoodBoundsGeoJSON =   {
+            type: "Feature",
+            id: Meteor.userId(), //polygon id equals id of person that created the boundaries
+            geometry: getGeoJSONPolygonCoordinates(5, .0005),
+            properties: {name: ""}
+        };
+        var style = {
             strokeColor: '#FF0000',
             strokeOpacity: 0.35,
             strokeWeight: 2,
             fillColor: '#FF0000',
             fillOpacity: 0.25,
-            draggable: true,
+            draggable: false,
             editable: true
-        });
-        polygon.setMap(map.instance);
+        };
+        map.instance.data.addGeoJson(neighborHoodBoundsGeoJSON);//add the geojson polygon to the map
+        map.instance.data.setStyle(style);//set tje style of the map
+        var infoWindow = new google.maps.InfoWindow({map: map.instance});
+        infoWindow.setPosition({lat: center.latitude, lng: center.longitude});
+        infoWindow.setContent('Your Location');
     });
+
+    Session.set('neighborhoodErrors', {});//reset neighborhoodErrors each time template is created
 });
 
 Template.map.helpers({
@@ -79,5 +114,39 @@ Template.map.helpers({
                 zoom: 18
             };
         }
+    },
+    errorMessage: function(field) {
+        return Session.get('neighborhoodErrors')[field];
+    },
+    errorClass: function (field) {
+        return !!Session.get('neighborhoodErrors')[field] ? 'has-error' : '';
+    }
+});
+
+Template.map.events({
+    'submit form': function(e) {
+        e.preventDefault();
+        var activeNeighborhood = null; //this is a geojson object; will be stores in neighboorhoods collection
+        var mapFeature = GoogleMaps.maps.map.instance.data.getFeatureById(Meteor.userId()); //only one polygon feature matches this id
+        mapFeature.toGeoJson(function(obj){
+            activeNeighborhood = obj;
+        });
+
+        activeNeighborhood.properties.name = $(e.target).find('[name=neighborhood]').val();
+        var errors = validateNeighborhoodName(activeNeighborhood);//build error object for empty fields
+
+        if(errors.neighborhood){//if neighborhood name is not set, set post errors
+            return Session.set('neighborhoodErrors', errors);
+        }
+
+        document.getElementById('info').innerHTML = JSON.stringify(activeNeighborhood);
+        //call insert function. to be executed by the server since we are using Meteor.call
+        Meteor.call('insertNeighborhood', activeNeighborhood, function(error, result){
+            if(error){
+                console.log(error.stack);
+                return throwError(error.reason);
+            }
+            Router.go('postsList');
+        });
     }
 });
