@@ -1,13 +1,59 @@
 if(Posts.find().count() === 0){
 	var now = new Date().getTime();
+
+	//insert neighborhood
+	var neighborhoodId = Neighborhoods.insert({
+		"type" : "Feature",
+		"geometry" : {
+			"type" : "Polygon",
+			"coordinates" : [
+				[
+					[
+						-86.1589632000000170,
+						39.7684445000000010
+					],
+					[
+						-86.1584876717418520,
+						39.7680990084971880
+					],
+					[
+						-86.1586693073738840,
+						39.7675399915028080
+					],
+					[
+						-86.1592570926261490,
+						39.7675399915028080
+					],
+					[
+						-86.1594387282581240,
+						39.7680990084971880
+					],
+					[
+						-86.1589632000000170,
+						39.7684445000000010
+					]
+				]
+			]
+		},
+		"properties" : {
+			"name" : "Downtown Indianapolis"
+		},
+		"id" : "ByWFzmG8nqjad9xwm"
+	});
 	// create two users
 	var aminId = Meteor.users.insert({
-		profile: { name: 'Amin Tazifor' }
+		profile: {
+			name: 'Amin Tazifor',
+			"neighborhoodId" : neighborhoodId
+		}
 	});
 	var amin = Meteor.users.findOne(aminId);
 
 	var peterId = Meteor.users.insert({
-		profile: { name: 'Peter Chuba' }
+		profile: {
+			name: 'Peter Chuba',
+			"neighborhoodId": neighborhoodId
+		}
 	});
 	var peter = Meteor.users.findOne(peterId);
 
@@ -18,6 +64,7 @@ if(Posts.find().count() === 0){
 			"football"
 		],
 		"userId" : amin._id,
+		"neighborhoodId" : neighborhoodId,
 		"author" : amin.profile.name,
 		"submitted" : new Date(now - 7 * 3600 * 1000),
 		commentsCount: 2
@@ -46,6 +93,7 @@ if(Posts.find().count() === 0){
 			"training"
 		],
 		"userId" : peter._id,
+		"neighborhoodId": neighborhoodId,
 		"author" : peter.profile.name,
 		"submitted" : new Date(now - 7 * 3600 * 1000),
 		commentsCount: 1
@@ -68,6 +116,7 @@ if(Posts.find().count() === 0){
 			],
 			"userId" : peter._id,
 			"author" : peter.profile.name,
+			"neighborhoodId": "s0meFake1ID",
 			"submitted" : new Date(now - 7 * 3600 * 1000),
 			commentsCount: 0
 		});
