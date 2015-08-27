@@ -47,8 +47,8 @@ function getGeoJSONPolygonCoordinates(numberOfSides, radius){
     }
     //polygon.push([center.longitude, center.latitude]);
 
-    console.log(JSON.stringify(getRegularPolygonCoordinates(numberOfSides, radius)));
-    console.log(JSON.stringify({"type": "Polygon",  "coordinates": [polygon]}));
+    //console.log(JSON.stringify(getRegularPolygonCoordinates(numberOfSides, radius)));
+    //console.log(JSON.stringify({"type": "Polygon",  "coordinates": [polygon]}));
     return {
         "type":"Polygon",
         "coordinates":[polygon]

@@ -5,7 +5,6 @@ Meteor.publish('posts', function(options) {
 	});
 	var userProfile = getUserProfile(this.userId);
 	if(userProfile){
-		console.log("profile: " + JSON.stringify(userProfile));
 		//var user = Meteor.users.findOne({_id: this.userId}, {fields: {profile: 1}});
 		return Posts.find({neighborhoodId : userProfile.profile.neighborhood}, options); //see only posts that are in your neighborhood
 	}
@@ -27,7 +26,7 @@ Meteor.publish('notifications', function() {
 });
 
 /**
- * find the neighborhod of a user
+ * publishes the neighborhood of a user
  */
 Meteor.publish('neighborhood', function(userId){
 	check(userId, String);
