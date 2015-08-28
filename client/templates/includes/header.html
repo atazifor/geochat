@@ -12,14 +12,16 @@
             </div>
             <div class="collapse navbar-collapse" id="navigation">
                 {{#if currentUser}}
-                    <ul class="nav navbar-nav">
-                        <li>
-                            <a href="{{pathFor 'newPost'}}">Create New Post</a>
-                        </li>
-                        <li class="dropdown">
-                            {{> notifications}}
-                        </li>
-                    </ul>
+                    {{#if isUserNeigborhoodSet}}
+                        <ul class="nav navbar-nav">
+                            <li>
+                                <a href="{{pathFor 'newPost'}}">Create New Post</a>
+                            </li>
+                            <li class="dropdown">
+                                {{> notifications}}
+                            </li>
+                        </ul>
+                    {{/if}}
                 {{/if}}
                 <ul class="nav navbar-nav navbar-right">
                     {{> loginButtons}}

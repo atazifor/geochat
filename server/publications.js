@@ -28,10 +28,12 @@ Meteor.publish('notifications', function() {
 /**
  * publishes the neighborhood of a user
  */
-Meteor.publish('neighborhood', function(userId){
-	check(userId, String);
+Meteor.publish('neighborhood', function(){
 	var userProfile = getUserProfile(this.userId);
-	return Neighborhoods.find({_id: userProfile.profile.neighborhood});
+	if(userProfile){
+		return Neighborhoods.find({_id: userProfile.profile.neighborhood});
+	}
+	return Neighborhoods.find({_id: 'notExist'});
 });
 
 var getUserProfile = function(userId){
