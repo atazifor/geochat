@@ -14,5 +14,15 @@
         </div>
         <input type="submit" value="Save" class="btn btn-primary"/>
     </form>
-    <div id="info"></div>
+    <div id="info">
+        <h4>Based on your location it has been determined that you may be part of following neighborhood(s): </h4>
+            {{#each neighborhoodsContainingUserLocation}}
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="neighborhoodOptions" id="neighborhoodOption{{_id}}" value="{{_id}}">
+                        {{properties.name}}
+                    </label>
+                </div>
+            {{/each}}
+    </div>
 </template>  

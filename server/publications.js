@@ -36,6 +36,27 @@ Meteor.publish('neighborhood', function(){
 	return Neighborhoods.find({_id: 'notExist'});
 });
 
+
+/**
+ * publish neighborhood(s) that the <strong>point</point> intersects
+ */
+Meteor.publish('neighborhoodsContainingPoint', function(point){
+	check(point, {
+		longitude: Number,
+		latitude: Number
+	});
+	return Neighborhoods.find({
+		geometry: {
+			$geoIntersects: {
+				$geometry: {
+					type: "Point",
+					coordinates: [point.longitude, point.latitude]
+				}
+			}
+		}
+	});
+});
+
 var getUserProfile = function(userId){
 	if(userId)
 		return Meteor.users.findOne({_id: userId}, {fields: {profile: 1}});

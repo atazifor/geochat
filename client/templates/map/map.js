@@ -79,8 +79,8 @@ Meteor.startup(function() {
 });
 
 Template.map.onCreated(function() {
+    var self = this;
     GoogleMaps.ready('map', function(map) {
-        console.log("I'm ready!");
         neighborHoodBoundsGeoJSON =   {
             type: "Feature",
             id: Meteor.userId(), //polygon id equals id of person that created the boundaries
@@ -103,6 +103,8 @@ Template.map.onCreated(function() {
         infoWindow.setContent('Your Location');
     });
 
+    self.subscribe("neighborhoodsContainingPoint", center); //subscribe this (map) template to neighborhoodContainingPoint
+
     Session.set('neighborhoodErrors', {});//reset neighborhoodErrors each time template is created
 });
 
@@ -115,6 +117,11 @@ Template.map.helpers({
             };
         }
     },
+    neighborhoodsContainingUserLocation: function(){ //this location intersects any neighborhoods in the database?
+        //only neighborhood(s) that contain user's location - center - exists (based on publish/subscribe neighborhoodsContainingPoint)
+        return Neighborhoods.find({});
+    },
+    //neighborhoodsContainingUserLocationCount: this.neighborhoodsContainingUserLocation().count(),
     errorMessage: function(field) {
         return Session.get('neighborhoodErrors')[field];
     },
@@ -139,7 +146,7 @@ Template.map.events({
             return Session.set('neighborhoodErrors', errors);
         }
 
-        document.getElementById('info').innerHTML = JSON.stringify(activeNeighborhood);
+        //document.getElementById('info').innerHTML = JSON.stringify(activeNeighborhood);
         //call insert function. to be executed by the server since we are using Meteor.call
         Meteor.call('insertNeighborhood', activeNeighborhood, function(error, result){
             if(error){
@@ -148,5 +155,9 @@ Template.map.events({
             }
             Router.go('postsList');
         });
+    },
+    'click input[type=radio]': function(e) {
+        var element = $(e.target).find('input:radio[name=neighborhoodOptions]:checked').val();
+        console.log(element);
     }
 });
