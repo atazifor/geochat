@@ -1,28 +1,47 @@
 <template name="map">
-    <form class="form-horizontal">
-        <div class="map-container form-group">
-            <h4>Use the overlay in the map to select the approximate boundaries of your neighborhood</h4>
-            {{> googleMap name="map" options=mapOptions}}
-        </div>
-        <hr>
-        <div class="form-group {{errorClass 'neighborhood'}}">
-            <label class="control-label" for="neighborhood">Neighborhood/Community name</label>
-            <div class="controls">
-                <input name="neighborhood" id="neighborhood" type="text" value="" placeholder="The Settlement" class="form-control"/>
-                <span class="help-block">{{errorMessage 'neighborhood'}}</span>
+    <form class="form-horizontal {{formClass}}">
+        <div class="form-group">
+            {{#if defaultNeighborhoodsContainingUserLocation}}
+                <div id="info">
+                    <h4>Based on your location it has been determined that you may be part of following neighborhood(s): </h4>
+                    {{#each neighborhoodsContainingUserLocation}}
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="neighborhoodOptions" id="neighborhoodOption{{_id}}" value="{{_id}}" {{radioChecked _id}}>
+                                {{properties.name}}
+                            </label>
+                        </div>
+                    {{/each}}
+                </div>
+            {{else}}
+                <h4>Use the overlay in the map to select the approximate boundaries of your neighborhood</h4>
+            {{/if}}
+            <hr>
+            <div class="map-container">
+                {{> googleMap name="map" options=mapOptions}}
             </div>
         </div>
-        <input type="submit" value="Save" class="btn btn-primary"/>
-    </form>
-    <div id="info">
-        <h4>Based on your location it has been determined that you may be part of following neighborhood(s): </h4>
-            {{#each neighborhoodsContainingUserLocation}}
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="neighborhoodOptions" id="neighborhoodOption{{_id}}" value="{{_id}}">
-                        {{properties.name}}
-                    </label>
+        {{#if defaultNeighborhoodsContainingUserLocation}}
+            <div class="form-group">
+                <label class="control-label" for="neighborhood">Neighborhood Name</label>
+                <div class="controls">
+                    <input name="neighborhood" id="neighborhood" class="form-control" type="text" value="{{defaultNeighborhoodsContainingUserLocation.properties.name}}" readonly/>
                 </div>
-            {{/each}}
-    </div>
-</template>  
+                {{#if currentUser}}
+                    <input type="submit" value="Join this neighborhood" class="btn btn-primary"/>
+                {{else}}
+                    <button type="button" class="btn btn-info">Create an account to join {{defaultNeighborhoodsContainingUserLocation.properties.name}}</button>
+                {{/if}}
+            </div>
+        {{else}}
+            <div class="form-group {{errorClass 'neighborhood'}}">
+                <label class="control-label" for="neighborhood">Neighborhood Name</label>
+                <div class="controls">
+                    <input name="neighborhood" id="neighborhood" type="text" value="" placeholder="Enter the name of your neighborhood" class="form-control"/>
+                    <span class="help-block">{{errorMessage 'neighborhood'}}</span>
+                </div>
+                <input type="submit" value="Save your Neighborhood map" class="btn btn-primary"/>
+            </div>
+        {{/if}}
+    </form>
+</template>

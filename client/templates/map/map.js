@@ -77,33 +77,51 @@ Meteor.startup(function() {
         center.longitude = position.longitude;
     });
 });
-
+var MapProperties = {
+    mapOptions: {},
+    style: {
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.35,
+        strokeWeight: 2,
+        fillColor: '#FF0000',
+        fillOpacity: 0.25,
+        draggable: false,
+        editable: true
+    }
+};
+MapInstance = {};
 Template.map.onCreated(function() {
     var self = this;
-    GoogleMaps.ready('map', function(map) {
-        neighborHoodBoundsGeoJSON =   {
-            type: "Feature",
-            id: Meteor.userId(), //polygon id equals id of person that created the boundaries
-            geometry: getGeoJSONPolygonCoordinates(5, .0005),
-            properties: {name: ""}
-        };
-        var style = {
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.35,
-            strokeWeight: 2,
-            fillColor: '#FF0000',
-            fillOpacity: 0.25,
-            draggable: false,
-            editable: true
-        };
-        map.instance.data.addGeoJson(neighborHoodBoundsGeoJSON);//add the geojson polygon to the map
-        map.instance.data.setStyle(style);//set tje style of the map
-        var infoWindow = new google.maps.InfoWindow({map: map.instance});
-        infoWindow.setPosition({lat: center.latitude, lng: center.longitude});
-        infoWindow.setContent('Your Location');
-    });
-
     self.subscribe("neighborhoodsContainingPoint", center); //subscribe this (map) template to neighborhoodContainingPoint
+
+    GoogleMaps.ready('map', function(map) {
+
+        mapInstance = map.instance;
+
+        neighborHoodBoundsGeoJSON =  Neighborhoods.findOne({});//first check if there is a neighborhood already set
+
+        if(neighborHoodBoundsGeoJSON){ //there is at least one neighborhood already set in the user's location
+            MapProperties.style.editable = false;
+            //$('#neighborhood').attr('readonly', true);//make read only
+            //setNeighborhoodName(neighborHoodBoundsGeoJSON.properties.name);
+        }else {
+            neighborHoodBoundsGeoJSON = {
+                type: "Feature",
+                id: Meteor.userId(), //polygon id equals id of person that created the boundaries. this is the feature ID
+                geometry: getGeoJSONPolygonCoordinates(5, .0005),
+                properties: {name: ""}
+            };
+        }
+        mapInstance.data.addGeoJson(neighborHoodBoundsGeoJSON);//add the geojson polygon to the map
+        mapInstance.data.setStyle(MapProperties.style);//set tje style of the map
+        var marker = new google.maps.Marker({
+            position: {lat: center.latitude, lng: center.longitude},
+            map: mapInstance,
+            title: 'Your Location'
+        });
+
+        MapInstance = mapInstance;
+    });
 
     Session.set('neighborhoodErrors', {});//reset neighborhoodErrors each time template is created
 });
@@ -121,17 +139,32 @@ Template.map.helpers({
         //only neighborhood(s) that contain user's location - center - exists (based on publish/subscribe neighborhoodsContainingPoint)
         return Neighborhoods.find({});
     },
+    neighborhoodsContainingUserLocationCount: function(){
+        return  Neighborhoods.find({}).count();
+    },
+    defaultNeighborhoodsContainingUserLocation: function(){
+        return  Neighborhoods.findOne({});
+    },
     //neighborhoodsContainingUserLocationCount: this.neighborhoodsContainingUserLocation().count(),
     errorMessage: function(field) {
         return Session.get('neighborhoodErrors')[field];
     },
     errorClass: function (field) {
         return !!Session.get('neighborhoodErrors')[field] ? 'has-error' : '';
+    },
+    formClass: function(){
+        return Neighborhoods.find({}).count() ? 'existingNeighborhood' : 'newNeighborhood';
+    },
+    radioChecked: function(radioId){
+        var nb =  Neighborhoods.findOne({});
+        if(!!nb){
+            return nb._id === radioId ? "checked" : "";
+        }
     }
 });
 
 Template.map.events({
-    'submit form': function(e) {
+    'submit .newNeighborhood': function(e) {
         e.preventDefault();
         var activeNeighborhood = null; //this is a geojson object; will be stores in neighboorhoods collection
         var mapFeature = GoogleMaps.maps.map.instance.data.getFeatureById(Meteor.userId()); //only one polygon feature matches this id
@@ -156,8 +189,51 @@ Template.map.events({
             Router.go('postsList');
         });
     },
+    'submit .existingNeighborhood': function(e) {
+        e.preventDefault();
+
+        var nbId = $(e.target).find('input:checked[type=radio]').val();
+        //document.getElementById('info').innerHTML = JSON.stringify(activeNeighborhood);
+        //call insert function. to be executed by the server since we are using Meteor.call
+        Meteor.call('updateUserNeighborhoodInfo', nbId, function(error, result){
+           /* if(error){
+                console.log(error.stack);
+                return throwError(error.reason);
+            }*/
+            Router.go('postsList');
+        });
+    },
     'click input[type=radio]': function(e) {
-        var element = $(e.target).find('input:radio[name=neighborhoodOptions]:checked').val();
-        console.log(element);
+        var elementId = $(e.target).val(); //neighborhood id
+        var nb = Neighborhoods.findOne({_id: elementId}); //find neighborhood map (a google map geojson object) from the database
+
+        var alreadyOnMap = false;
+        //remove any polygons on the map before adding new one
+        MapInstance.data.forEach(function(feature){
+            //neighborhood.id is a feature id. only remove if feature id is different.
+            //if there is only one neighborhood that matches user location, no need to remove and add each time user clicks on radio
+            if(nb.id === feature.getId()){
+                alreadyOnMap = true;
+            }else if('Polygon' == feature.getGeometry().getType() && nb.id != feature.getId()){
+                console.log("feature with Id: " + feature.getId() + " removed");
+                MapInstance.data.remove(feature);
+            }
+        });
+        if(!alreadyOnMap) {
+            MapInstance.data.addGeoJson(nb);//add the geojson polygon to the map
+            MapProperties.style.editable = false;//make map not editable
+            MapInstance.data.setStyle(MapProperties.style);//set tje style of the map
+            setNeighborhoodName(nb.properties.name);
+        }
+
     }
 });
+
+/**
+ * used to set neighborhood name when viewing map in read only mode
+ * @param nbName
+ */
+var setNeighborhoodName = function(nbName){
+    $('#neighborhood').val(nbName);
+    //$('#neighborhood').attr('readonly', true);
+}
