@@ -89,21 +89,22 @@ var MapProperties = {
 MapInstance = {};
 Template.map.onCreated(function() {
     var self = this;
-    self.subscribe("neighborhoodsContainingPoint", center); //subscribe this (map) template to neighborhoodContainingPoint
-
     GoogleMaps.ready('map', function(map) {
 
         mapInstance = map.instance;
 
-        neighborHoodBoundsGeoJSON =  Neighborhoods.findOne({});//first check if there is a neighborhood already set
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                center.latitude = position.coords.latitude;
+                center.longitude = position.coords.longitude;
+                self.subscribe("neighborhoodsContainingPoint", center); //subscribe this (map) template to neighborhoodContainingPoint
+                neighborHoodBoundsGeoJSON = Neighborhoods.findOne({});//first check if there is a neighborhood already set
 
-        if(neighborHoodBoundsGeoJSON){ //there is at least one neighborhood already set in the user's location
-            MapProperties.style.editable = false;
-            //$('#neighborhood').attr('readonly', true);//make read only
-            //setNeighborhoodName(neighborHoodBoundsGeoJSON.properties.name);
-        }else {
-            navigator.geolocation.getCurrentPosition(
-                function (position) {
+                if (neighborHoodBoundsGeoJSON) { //there is at least one neighborhood already set in the user's location
+                    MapProperties.style.editable = false;
+                    //$('#neighborhood').attr('readonly', true);//make read only
+                    //setNeighborhoodName(neighborHoodBoundsGeoJSON.properties.name);
+                } else {
                     var returnValue = {
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude
@@ -126,10 +127,8 @@ Template.map.onCreated(function() {
                     });
 
                 }
-            );
-
-        }
-
+            }
+        );
 
         MapInstance = mapInstance;
     });
@@ -197,7 +196,17 @@ Template.map.events({
                 console.log(error.stack);
                 return throwError(error.reason);
             }
-            Router.go('postsList');
+            var post = {
+                message: "Welcome to " + activeNeighborhood.properties.name,
+                tags: 'welcome'
+            };
+
+            Meteor.call('insertPost', post, function(error, result){
+                if(error){
+                    return throwError(error.reason);
+                }
+                Router.go('postsList');
+            });
         });
     },
     'submit .existingNeighborhood': function(e) {
