@@ -34,14 +34,18 @@
                 {{/if}}
             </div>
         {{else}}
-            <div class="form-group {{errorClass 'neighborhood'}}">
-                <label class="control-label" for="neighborhood">Neighborhood Name</label>
-                <div class="controls">
-                    <input name="neighborhood" id="neighborhood" type="text" value="" placeholder="Enter the name of your neighborhood" class="form-control"/>
-                    <span class="help-block">{{errorMessage 'neighborhood'}}</span>
+            {{#if currentUser}}
+                <div class="form-group {{errorClass 'neighborhood'}}">
+                    <label class="control-label" for="neighborhood">Neighborhood Name</label>
+                    <div class="controls">
+                        <input name="neighborhood" id="neighborhood" type="text" value="" placeholder="Enter the name of your neighborhood" class="form-control"/>
+                        <span class="help-block">{{errorMessage 'neighborhood'}}</span>
+                    </div>
+                    <input type="submit" value="Save your Neighborhood map" class="btn btn-primary"/>
                 </div>
-                <input type="submit" value="Save your Neighborhood map" class="btn btn-primary"/>
-            </div>
+            {{else}}
+                <button type="button" class="btn btn-info">Create an account to join</button>
+            {{/if}}
         {{/if}}
     </form>
 </template>

@@ -36,19 +36,18 @@ function getRegularPolygonCoordinates(numberOfSides, radius){
  * @param radius
  * @returns {{type: string, coordinates: *[]}}
  */
-function getGeoJSONPolygonCoordinates(numberOfSides, radius){
+function getGeoJSONPolygonCoordinates(numberOfSides, radius, cntr){
     var polygon = []; //hold polygon to define area on map
     var theta = 2 * Math.PI / numberOfSides;
+
     //polygon.push([center.longitude, radius + center.latitude]);//ensures firs
     for (i = 0; i <= numberOfSides; ++i) {//ensures that you go 2Pi(360) degrees
         var x = radius * Math.cos(theta * i); //x coordinate
         var y = radius * Math.sin(theta * i);// y coordinate
-        polygon.push([center.longitude + y, center.latitude + x]);
+        polygon.push([cntr.longitude + y, cntr.latitude + x]);
     }
     //polygon.push([center.longitude, center.latitude]);
 
-    //console.log(JSON.stringify(getRegularPolygonCoordinates(numberOfSides, radius)));
-    //console.log(JSON.stringify({"type": "Polygon",  "coordinates": [polygon]}));
     return {
         "type":"Polygon",
         "coordinates":[polygon]
@@ -72,11 +71,9 @@ function getCenterCoordinates(callback) {
 Meteor.startup(function() {
     GoogleMaps.load();
     //change the center to the user's current position 40.75597, -73.974228
-    getCenterCoordinates(function (position) {
-        center.latitude = position.latitude;
-        center.longitude = position.longitude;
-    });
 });
+
+
 var MapProperties = {
     mapOptions: {},
     style: {
@@ -105,20 +102,34 @@ Template.map.onCreated(function() {
             //$('#neighborhood').attr('readonly', true);//make read only
             //setNeighborhoodName(neighborHoodBoundsGeoJSON.properties.name);
         }else {
-            neighborHoodBoundsGeoJSON = {
-                type: "Feature",
-                id: Meteor.userId(), //polygon id equals id of person that created the boundaries. this is the feature ID
-                geometry: getGeoJSONPolygonCoordinates(5, .0005),
-                properties: {name: ""}
-            };
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    var returnValue = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+
+                    neighborHoodBoundsGeoJSON = {
+                        type: "Feature",
+                        id: Meteor.userId(), //polygon id equals id of person that created the boundaries. this is the feature ID
+                        geometry: getGeoJSONPolygonCoordinates(8, .005, returnValue),
+                        properties: {name: ""}
+                    };
+
+                    mapInstance.data.addGeoJson(neighborHoodBoundsGeoJSON);//add the geojson polygon to the map
+                    mapInstance.data.setStyle(MapProperties.style);//set tje style of the map
+                    mapInstance.setCenter({lat: position.coords.latitude, lng: position.coords.longitude});
+                    var marker = new google.maps.Marker({
+                        position: {lat: position.coords.latitude, lng: position.coords.longitude},
+                        map: mapInstance,
+                        title: 'Your Location'
+                    });
+
+                }
+            );
+
         }
-        mapInstance.data.addGeoJson(neighborHoodBoundsGeoJSON);//add the geojson polygon to the map
-        mapInstance.data.setStyle(MapProperties.style);//set tje style of the map
-        var marker = new google.maps.Marker({
-            position: {lat: center.latitude, lng: center.longitude},
-            map: mapInstance,
-            title: 'Your Location'
-        });
+
 
         MapInstance = mapInstance;
     });
@@ -131,7 +142,7 @@ Template.map.helpers({
         if (GoogleMaps.loaded()) {
             return {
                 center: new google.maps.LatLng(center.latitude, center.longitude),
-                zoom: 18
+                zoom: 15
             };
         }
     },
